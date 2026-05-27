@@ -1,22 +1,7 @@
-# ══════════════════════════════════════════════════════════════
-# Docker Compose - Cloud Task Manager Microservices
-# 
-# Architecture:
-#   Client → Nginx (port 80) → Flask API (port 5000) → MySQL (port 3306)
-#
-# Usage:
-#   docker-compose up --build        # Build and start all services
-#   docker-compose down              # Stop all services
-#   docker-compose down -v           # Stop and remove volumes (reset DB)
-#   docker-compose logs -f api       # Stream API logs
-#   docker-compose ps                # Check service status
-# ══════════════════════════════════════════════════════════════
-
 version: '3.8'
 
 services:
 
-  # ──────────── MySQL Database ────────────
   db:
     image: mysql:8.0
     container_name: taskmanager-db
@@ -27,7 +12,7 @@ services:
       MYSQL_USER: taskuser
       MYSQL_PASSWORD: taskpass123
     ports:
-      - "3307:3306"    # Mapped to 3307 to avoid conflicts
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -39,7 +24,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # ──────────── Flask API Backend ────────────
   api:
     build:
       context: ./app
@@ -57,9 +41,7 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    # No port exposed externally — only accessible via Nginx
 
-  # ──────────── Nginx Reverse Proxy ────────────
   nginx:
     image: nginx:1.25-alpine
     container_name: taskmanager-nginx
@@ -79,13 +61,11 @@ services:
       timeout: 5s
       retries: 3
 
-# ──────────── Shared Network ────────────
 networks:
   app-network:
     driver: bridge
     name: taskmanager-network
 
-# ──────────── Persistent Volume ────────────
 volumes:
   mysql_data:
     name: taskmanager-mysql-data

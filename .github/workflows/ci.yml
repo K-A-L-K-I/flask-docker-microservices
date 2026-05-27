@@ -1,10 +1,3 @@
-# ══════════════════════════════════════════════════════════════
-# CI/CD Pipeline — Cloud Task Manager
-# 
-# Triggers: Push to main branch, Pull Requests
-# Steps: Lint → Build → Deploy → Test → Cleanup
-# ══════════════════════════════════════════════════════════════
-
 name: CI/CD Pipeline
 
 on:
@@ -19,11 +12,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ──────────── Checkout Code ────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ──────────── Python Lint ────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,82 +25,51 @@ jobs:
           pip install flake8
           flake8 app/app.py --max-line-length=120 --count --show-source --statistics
 
-      # ──────────── Build Docker Images ────────────
       - name: Build Docker images
         run: docker-compose build
 
-      # ──────────── Start All Services ────────────
       - name: Start services
         run: |
           docker-compose up -d
-          echo "⏳ Waiting for services to be healthy..."
+          echo "Waiting for services to be healthy..."
           sleep 30
 
-      # ──────────── Verify Containers Running ────────────
       - name: Check container status
-        run: |
-          docker-compose ps
-          echo "──────────────────────────"
-          echo "📋 Container health status:"
-          docker inspect --format='{{.Name}}: {{.State.Health.Status}}' taskmanager-db taskmanager-nginx || true
+        run: docker-compose ps
 
-      # ──────────── API Health Check ────────────
       - name: Health check
         run: |
-          echo "🏥 Testing health endpoint..."
           curl -f http://localhost/api/health || (docker-compose logs api && exit 1)
 
-      # ──────────── API Endpoint Tests ────────────
       - name: Test API endpoints
         run: |
-          echo "═══════════════════════════════════════"
-          echo "🧪 Running API tests..."
-          echo "═══════════════════════════════════════"
-          
-          # Test: Get all tasks
-          echo "📋 GET /api/tasks"
+          echo "GET /api/tasks"
           curl -sf http://localhost/api/tasks | python3 -m json.tool
-          echo ""
-          
-          # Test: Get stats
-          echo "📊 GET /api/stats"
+
+          echo "GET /api/stats"
           curl -sf http://localhost/api/stats | python3 -m json.tool
-          echo ""
-          
-          # Test: Create a task
-          echo "➕ POST /api/tasks"
+
+          echo "POST /api/tasks"
           curl -sf -X POST http://localhost/api/tasks \
             -H "Content-Type: application/json" \
             -d '{"title":"CI/CD Test Task","description":"Created by GitHub Actions","priority":"high"}' \
             | python3 -m json.tool
-          echo ""
-          
-          # Test: Verify task was created
-          echo "✅ GET /api/tasks (verify creation)"
+
+          echo "GET /api/tasks (verify creation)"
           curl -sf http://localhost/api/tasks | python3 -m json.tool
-          echo ""
-          
-          # Test: Update the task
-          echo "✏️ PUT /api/tasks/6"
+
+          echo "PUT /api/tasks/6"
           curl -sf -X PUT http://localhost/api/tasks/6 \
             -H "Content-Type: application/json" \
             -d '{"status":"completed"}' \
             | python3 -m json.tool
-          echo ""
-          
-          # Test: Delete the task
-          echo "🗑️ DELETE /api/tasks/6"
+
+          echo "DELETE /api/tasks/6"
           curl -sf -X DELETE http://localhost/api/tasks/6 \
             | python3 -m json.tool
-          echo ""
-          
-          echo "═══════════════════════════════════════"
-          echo "✅ All API tests passed!"
-          echo "═══════════════════════════════════════"
 
-      # ──────────── Cleanup ────────────
+          echo "All API tests passed"
+
       - name: Cleanup
         if: always()
-        run: |
-          docker-compose down -v
-          echo "🧹 Cleanup complete"
+        run: docker-compose down -v
