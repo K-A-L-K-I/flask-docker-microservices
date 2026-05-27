@@ -1,0 +1,16 @@
+# ──────────────────────────────────────────────
+# .dockerignore - Exclude from Docker builds
+# ──────────────────────────────────────────────
+
+.git
+.gitignore
+*.md
+__pycache__
+*.pyc
+*.pyo
+.env
+.vscode
+.idea
+node_modules
+.DS_Store
+Thumbs.db

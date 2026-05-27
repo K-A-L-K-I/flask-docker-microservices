@@ -1,0 +1,28 @@
+# ──────────────────────────────────────────────
+# .gitignore
+# ──────────────────────────────────────────────
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+mysql_data/
