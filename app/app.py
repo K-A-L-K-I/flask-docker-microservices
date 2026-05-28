@@ -244,6 +244,10 @@ def get_stats():
     cursor.close()
     conn.close()
 
+    # Convert Decimal values (from SUM) to int for JSON serialization
+    if stats:
+        stats = {k: int(v) if v is not None else 0 for k, v in stats.items()}
+
     return jsonify({'success': True, 'stats': stats}), 200
 
 
