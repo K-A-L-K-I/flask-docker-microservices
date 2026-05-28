@@ -52,7 +52,8 @@ def init_db():
     count = cursor.fetchone()[0]
     if count == 0:
         sample_tasks = [
-            ('Set up Docker environment', 'Configure Docker and Docker Compose for microservices deployment', 'completed', 'high'),
+            ('Set up Docker environment',
+             'Configure Docker and Docker Compose for microservices deployment', 'completed', 'high'),
             ('Design REST API', 'Create RESTful endpoints for task management', 'completed', 'high'),
             ('Configure Nginx', 'Set up Nginx as reverse proxy with load balancing', 'in_progress', 'medium'),
             ('Write documentation', 'Document API endpoints and deployment steps', 'pending', 'medium'),
