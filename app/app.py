@@ -247,7 +247,12 @@ def get_stats():
     return jsonify({'success': True, 'stats': stats}), 200
 
 
+# Initialize database on startup when run by Gunicorn
+try:
+    init_db()
+except Exception as e:
+    print(f"Warning: Could not initialize database during startup: {e}")
+
 if __name__ == '__main__':
     print("Starting Cloud Task Manager API...")
-    init_db()
     app.run(host='0.0.0.0', port=5000, debug=False)
