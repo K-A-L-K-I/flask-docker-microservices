@@ -236,25 +236,27 @@ def delete_task(task_id):
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     """Get task statistics for the dashboard."""
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    cursor.execute('''
-        SELECT
-            COUNT(*) as total,
-            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-            SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) as high_priority
-        FROM tasks
-    ''')
-    row = cursor.fetchone()
-    cursor.close()
-    conn.close()
+        cursor.execute('''
+            SELECT
+                COUNT(*) as total,
+                CAST(SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) AS SIGNED) as pending,
+                CAST(SUM(CASE WHEN status = "in_progress" THEN 1 ELSE 0 END) AS SIGNED) as in_progress,
+                CAST(SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) AS SIGNED) as completed,
+                CAST(SUM(CASE WHEN priority = "high" THEN 1 ELSE 0 END) AS SIGNED) as high_priority
+            FROM tasks
+        ''')
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
 
-    stats = {k: serialize(v) for k, v in row.items()} if row else {}
-
-    return jsonify({'success': True, 'stats': stats}), 200
+        stats = {k: (int(v) if v is not None else 0) for k, v in row.items()} if row else {}
+        return jsonify({'success': True, 'stats': stats}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.before_request

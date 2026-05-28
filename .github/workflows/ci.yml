@@ -44,28 +44,25 @@ jobs:
       - name: Test API endpoints
         run: |
           echo "GET /api/tasks"
-          curl -sf http://localhost/api/tasks | python3 -m json.tool
+          curl -f http://localhost/api/tasks | python3 -m json.tool
 
           echo "GET /api/stats"
-          curl -sf http://localhost/api/stats | python3 -m json.tool
+          curl -f http://localhost/api/stats | python3 -m json.tool
 
           echo "POST /api/tasks"
-          curl -sf -X POST http://localhost/api/tasks \
+          curl -f -X POST http://localhost/api/tasks \
             -H "Content-Type: application/json" \
             -d '{"title":"CI/CD Test Task","description":"Created by GitHub Actions","priority":"high"}' \
             | python3 -m json.tool
 
-          echo "GET /api/tasks (verify creation)"
-          curl -sf http://localhost/api/tasks | python3 -m json.tool
-
           echo "PUT /api/tasks/6"
-          curl -sf -X PUT http://localhost/api/tasks/6 \
+          curl -f -X PUT http://localhost/api/tasks/6 \
             -H "Content-Type: application/json" \
             -d '{"status":"completed"}' \
             | python3 -m json.tool
 
           echo "DELETE /api/tasks/6"
-          curl -sf -X DELETE http://localhost/api/tasks/6 \
+          curl -f -X DELETE http://localhost/api/tasks/6 \
             | python3 -m json.tool
 
           echo "All API tests passed"
