@@ -239,21 +239,18 @@ def get_stats():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-
-        cursor.execute('''
-            SELECT
-                COUNT(*) as total,
-                CAST(SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) AS SIGNED) as pending,
-                CAST(SUM(CASE WHEN status = "in_progress" THEN 1 ELSE 0 END) AS SIGNED) as in_progress,
-                CAST(SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) AS SIGNED) as completed,
-                CAST(SUM(CASE WHEN priority = "high" THEN 1 ELSE 0 END) AS SIGNED) as high_priority
-            FROM tasks
-        ''')
-        row = cursor.fetchone()
+        cursor.execute('SELECT status, priority FROM tasks')
+        tasks = cursor.fetchall()
         cursor.close()
         conn.close()
 
-        stats = {k: (int(v) if v is not None else 0) for k, v in row.items()} if row else {}
+        stats = {
+            'total': len(tasks),
+            'pending': sum(1 for t in tasks if t['status'] == 'pending'),
+            'in_progress': sum(1 for t in tasks if t['status'] == 'in_progress'),
+            'completed': sum(1 for t in tasks if t['status'] == 'completed'),
+            'high_priority': sum(1 for t in tasks if t['priority'] == 'high'),
+        }
         return jsonify({'success': True, 'stats': stats}), 200
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
