@@ -26,20 +26,20 @@ jobs:
           flake8 app/app.py --max-line-length=120 --count --show-source --statistics
 
       - name: Build Docker images
-        run: docker-compose build
+        run: docker compose build
 
       - name: Start services
         run: |
-          docker-compose up -d
+          docker compose up -d
           echo "Waiting for services to be healthy..."
           sleep 30
 
       - name: Check container status
-        run: docker-compose ps
+        run: docker compose ps
 
       - name: Health check
         run: |
-          curl -f http://localhost/api/health || (docker-compose logs api && exit 1)
+          curl -f http://localhost/api/health || (docker compose logs api && exit 1)
 
       - name: Test API endpoints
         run: |
@@ -72,4 +72,4 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
