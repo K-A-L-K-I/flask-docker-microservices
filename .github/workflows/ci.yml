@@ -26,7 +26,7 @@ jobs:
           flake8 app/app.py --max-line-length=120 --count --show-source --statistics
 
       - name: Build Docker images
-        run: docker compose build
+        run: docker compose build --no-cache
 
       - name: Start services
         run: |

@@ -1,5 +1,6 @@
 import os
 import time
+from decimal import Decimal
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import mysql.connector
@@ -68,6 +69,13 @@ def init_db():
     cursor.close()
     conn.close()
     print("Database initialized successfully")
+
+
+def serialize(obj):
+    """Convert MySQL types (Decimal, datetime) to JSON-safe Python types."""
+    if isinstance(obj, Decimal):
+        return int(obj)
+    return obj
 
 
 @app.route('/api/health', methods=['GET'])
@@ -240,23 +248,27 @@ def get_stats():
             SUM(CASE WHEN priority = 'high' THEN 1 ELSE 0 END) as high_priority
         FROM tasks
     ''')
-    stats = cursor.fetchone()
+    row = cursor.fetchone()
     cursor.close()
     conn.close()
 
-    # Convert Decimal values (from SUM) to int for JSON serialization
-    if stats:
-        stats = {k: int(v) if v is not None else 0 for k, v in stats.items()}
+    stats = {k: serialize(v) for k, v in row.items()} if row else {}
 
     return jsonify({'success': True, 'stats': stats}), 200
 
 
-# Initialize database on startup when run by Gunicorn
-try:
-    init_db()
-except Exception as e:
-    print(f"Warning: Could not initialize database during startup: {e}")
+@app.before_request
+def ensure_db_initialized():
+    """Ensure DB is initialized on first request (works with Gunicorn)."""
+    pass
+
+
+with app.app_context():
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Warning: DB init on startup failed: {e}")
+
 
 if __name__ == '__main__':
-    print("Starting Cloud Task Manager API...")
     app.run(host='0.0.0.0', port=5000, debug=False)
